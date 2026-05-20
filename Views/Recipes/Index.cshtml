@@ -1,0 +1,35 @@
+@model IEnumerable<RecipeSite.Models.Recipe>
+
+@{
+    ViewData["Title"] = "Список рецептів";
+}
+
+<h1 class="mb-4">Мої рецепти</h1>
+<p><a asp-action="Create" class="btn btn-success">Додати новий рецепт</a></p>
+
+<table class="table table-striped table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>Назва страви</th>
+            <th>Час приготування (хв)</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="3" class="text-center">Рецептів поки немає. Додайте перший!</td></tr>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.CookingTime</td>
+                    <td><a asp-action="Details" asp-route-id="@item.RecipeId" class="btn btn-sm btn-info">Деталі</a></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

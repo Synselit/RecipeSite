@@ -1,0 +1,33 @@
+@model RecipeSite.Models.Recipe
+
+@{
+    ViewData["Title"] = "Додати рецепт";
+}
+
+<h1 class="mb-4">Створення нового рецепта</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">Назва страви</label>
+                <input asp-for="Title" class="form-control" required />
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Короткий опис</label>
+                <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CookingTime" class="form-label">Час приготування (у хвилинах)</label>
+                <input asp-for="CookingTime" type="number" class="form-control" required />
+            </div>
+
+            <div class="mt-4">
+                <input type="submit" value="Зберегти в базу" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Скасувати</a>
+            </div>
+        </form>
+    </div>
+</div>
