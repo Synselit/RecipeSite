@@ -1,0 +1,25 @@
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using RecipeSite.Models;
+
+namespace RecipeSite.Models
+{
+    public class Recipe
+    {
+        [Key]
+        public int RecipeId { get; set; }
+
+        [Required(ErrorMessage = "Введіть назву рецепта")]
+        [StringLength(200)]
+        public string Title { get; set; }
+
+        [Required(ErrorMessage = "Опис не може бути порожнім")]
+        public string Description { get; set; }
+
+        [Display(Name = "Час приготування (хв)")]
+        public int CookingTime { get; set; }
+
+        // Навігаційна властивість (Зв'язок з інгредієнтами)
+        public List<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
+    }
+}
