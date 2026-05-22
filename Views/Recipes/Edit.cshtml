@@ -4,32 +4,91 @@
     ViewData["Title"] = "Редагування";
 }
 
-<h1 class="mb-4">Редагувати рецепт</h1>
+<h1 class="mb-4">Редагувати: @Model.Title</h1>
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Edit">
-            <input type="hidden" asp-for="RecipeId" />
+<form asp-action="Edit" enctype="multipart/form-data">
+    <input type="hidden" asp-for="RecipeId" />
+    <input type="hidden" asp-for="ImagePath" />
 
+    <div class="row">
+        <div class="col-md-5">
             <div class="mb-3">
-                <label asp-for="Title" class="form-label">Назва страви</label>
+                <label asp-for="Title" class="form-label fw-bold">Назва страви</label>
                 <input asp-for="Title" class="form-control" required />
             </div>
-            
             <div class="mb-3">
-                <label asp-for="Description" class="form-label">Короткий опис</label>
+                <label asp-for="Description" class="form-label fw-bold">Опис</label>
                 <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
             </div>
-
             <div class="mb-3">
-                <label asp-for="CookingTime" class="form-label">Час приготування (у хвилинах)</label>
+                <label asp-for="CookingTime" class="form-label fw-bold">Час (хвилин)</label>
                 <input asp-for="CookingTime" type="number" class="form-control" required />
             </div>
-
-            <div class="mt-4">
-                <input type="submit" value="Зберегти зміни" class="btn btn-warning" />
-                <a asp-action="Index" class="btn btn-secondary ms-2">Скасувати</a>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Замінити фото</label>
+                <input type="file" name="uploadFile" class="form-control" accept="image/*" />
             </div>
-        </form>
+        </div>
+
+        <div class="col-md-7 border-start">
+            <h5 class="mb-3">Склад (Інгредієнти)</h5>
+            
+            <div id="ingredients-container">
+                @if (Model.RecipeIngredients != null)
+                {
+                    foreach (var item in Model.RecipeIngredients)
+                    {
+                        <div class="row mb-2">
+                            <div class="col-md-5">
+                                <input type="text" name="ingredientNames" value="@item.Ingredient.Name" class="form-control" required />
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" name="amounts" value="@item.Amount.ToString().Replace(",", ".")" class="form-control" step="0.1" required />
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="units" value="@item.Unit" class="form-control" required />
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-danger w-100" onclick="this.parentElement.parentElement.remove()">✖</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            
+            <button type="button" class="btn btn-outline-success mt-2" onclick="addIngredientRow()">+ Додати ще інгредієнт</button>
+        </div>
     </div>
-</div>
+
+    <hr class="my-4" />
+    <input type="submit" value="Зберегти зміни" class="btn btn-primary btn-lg" />
+    <a asp-action="Index" class="btn btn-secondary btn-lg ms-2">Скасувати</a>
+</form>
+
+<template id="ingredientTemplate">
+    <div class="row mb-2">
+        <div class="col-md-5">
+            <input type="text" name="ingredientNames" class="form-control" placeholder="Назва (напр. Молоко)" required />
+        </div>
+        <div class="col-md-3">
+            <input type="number" name="amounts" class="form-control" step="0.1" placeholder="Кількість" required />
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="units" class="form-control" placeholder="г, шт..." required />
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger w-100" onclick="this.parentElement.parentElement.remove()" title="Видалити">✖</button>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script>
+        function addIngredientRow() {
+            const container = document.getElementById('ingredients-container');
+            const template = document.getElementById('ingredientTemplate');
+            const clone = template.content.cloneNode(true);
+            container.appendChild(clone);
+        }
+    </script>
+}
