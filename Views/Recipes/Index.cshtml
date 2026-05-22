@@ -4,43 +4,100 @@
     ViewData["Title"] = "Всі рецепти";
 }
 
-<h1 class="mb-4">Мої рецепти</h1>
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold text-success mb-0">🍽 Світ Рецептів</h1>
+        <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">+ Додати рецепт</a>
+    </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-success">Додати новий рецепт</a>
-</p>
+    <form asp-action="Index" method="get" class="mb-5 bg-light p-4 rounded-4 shadow-sm border border-light">
+        <h5 class="fw-bold mb-3 text-secondary">Пошук та фільтри</h5>
+        <div class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label fw-bold text-dark">Шукати за назвою:</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">🔍</span>
+                    <input type="text" name="searchString" value="@ViewBag.CurrentSearch" class="form-control border-start-0" placeholder="Напр. 'Борщ'..." />
+                </div>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label fw-bold text-dark">Що є в наявності? (через кому):</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">🛒</span>
+                    <input type="text" name="fridgeIngredients" value="@ViewBag.FridgeIngredients" class="form-control border-start-0" placeholder="Напр. 'Яйце, молоко, борошно'..." />
+                </div>
+            </div>
+            <div class="col-12 mt-4 text-end">
+                <button class="btn btn-primary px-4 py-2 fw-bold" type="submit">Знайти рецепти</button>
+                @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch) || !string.IsNullOrEmpty(ViewBag.FridgeIngredients))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2 fw-bold ms-2">Скинути фільтри</a>
+                }
+            </div>
+        </div>
+    </form>
 
-<table class="table table-bordered table-hover mt-3 align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>Фото</th>
-            <th>Назва страви</th>
-            <th>Час приготування (хв)</th>
-            <th>Дії</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+    <div class="mb-4 d-flex flex-wrap gap-2">
+        <a asp-action="Index" 
+           asp-route-searchString="@ViewBag.CurrentSearch" 
+           asp-route-fridgeIngredients="@ViewBag.FridgeIngredients" 
+           class="btn @(ViewBag.CurrentCategory == null ? "btn-dark" : "btn-outline-dark") rounded-pill px-4">
+            Всі категорії
+        </a>
+
+        @foreach (var cat in ViewBag.Categories)
         {
-            <tr>
-                <td style="width: 100px; text-align: center;">
-                    @if (!string.IsNullOrEmpty(item.ImagePath))
-                    {
-                        <img src="@item.ImagePath" alt="@item.Title" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />
-                    }
-                    else
-                    {
-                        <span class="text-muted small">Немає фото</span>
-                    }
-                </td>
-                <td class="fw-bold">@item.Title</td>
-                <td>@item.CookingTime</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.RecipeId" class="btn btn-sm btn-info">Деталі</a>
-                    <a asp-action="Edit" asp-route-id="@item.RecipeId" class="btn btn-sm btn-warning">Редагувати</a>
-                    <a asp-action="Delete" asp-route-id="@item.RecipeId" class="btn btn-sm btn-danger">Видалити</a>
-                </td>
-            </tr>
+            <a asp-action="Index" 
+               asp-route-categoryId="@cat.CategoryId" 
+               asp-route-searchString="@ViewBag.CurrentSearch" 
+               asp-route-fridgeIngredients="@ViewBag.FridgeIngredients" 
+               class="btn @(ViewBag.CurrentCategory == cat.CategoryId ? "btn-success" : "btn-outline-success") rounded-pill px-4">
+                @cat.Name
+            </a>
         }
-    </tbody>
-</table>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                        {
+                            <img src="@item.ImagePath" class="card-img-top" alt="@item.Title" style="height: 220px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 220px;">
+                                <span style="font-size: 4rem;">🍲</span>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark">@item.Title</h5>
+                            <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                @item.Description
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4 pt-0 d-flex justify-content-between align-items-center gap-2">
+                            <span class="badge bg-light text-success border border-success rounded-pill px-2 py-2">⏱ @item.CookingTime хв</span>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details" asp-route-id="@item.RecipeId" class="btn btn-outline-primary btn-sm fw-bold px-3">Деталі</a>
+                                <a asp-action="Delete" asp-route-id="@item.RecipeId" class="btn btn-outline-danger btn-sm px-2" title="Видалити рецепт">🗑</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <span style="font-size: 5rem;"></span>
+                <h3 class="text-muted mt-3">За вашим запитом нічого не знайдено</h3>
+                <p>Спробуйте ввести інше слово або перевірте правильність написання.</p>
+            </div>
+        }
+    </div>
+</div>

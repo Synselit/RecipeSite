@@ -23,6 +23,10 @@ namespace RecipeSite.Models
      
    
          public string? ImagePath { get; set; }
+
+         // Зв'язок з категорією
+        public int? CategoryId { get; set; }
+        public virtual Category? Category { get; set; }
     
     // ...
     }

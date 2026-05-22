@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RecipeSite.Data;
 using RecipeSite.Models;
@@ -23,18 +24,62 @@ namespace RecipeSite.Controllers
             _hostEnvironment = hostEnvironment;
         }
 
-        // GET: Усі рецепти
-        public async Task<IActionResult> Index()
+        // GET: Усі рецепти з пошуком, холодильником та категоріями
+        public async Task<IActionResult> Index(string searchString, string fridgeIngredients, int? categoryId)
         {
-            return View(await _context.Recipes.ToListAsync());
+            ViewBag.CurrentSearch = searchString;
+            ViewBag.FridgeIngredients = fridgeIngredients;
+            ViewBag.CurrentCategory = categoryId;
+
+            // Передаємо список усіх категорій для відображення кнопок-вкладок
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+
+            var recipesQuery = _context.Recipes
+                .Include(r => r.Category)
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .AsQueryable();
+
+            // Фільтрація за категорією
+            if (categoryId.HasValue)
+            {
+                recipesQuery = recipesQuery.Where(r => r.CategoryId == categoryId.Value);
+            }
+
+            // Звичайний пошук
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                recipesQuery = recipesQuery.Where(r => 
+                    r.Title.Contains(searchString) || 
+                    r.RecipeIngredients.Any(ri => ri.Ingredient.Name.Contains(searchString)));
+            }
+
+            var recipes = await recipesQuery.ToListAsync();
+
+            // Розумний фільтр холодильника
+            if (!string.IsNullOrEmpty(fridgeIngredients))
+            {
+                var userItems = fridgeIngredients
+                    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(i => i.Trim().ToLower())
+                    .ToList();
+
+                recipes = recipes
+                    .Where(r => r.RecipeIngredients.Any(ri => userItems.Any(ui => ri.Ingredient.Name.ToLower().Contains(ui))))
+                    .OrderByDescending(r => r.RecipeIngredients.Count(ri => userItems.Any(ui => ri.Ingredient.Name.ToLower().Contains(ui))))
+                    .ToList();
+            }
+
+            return View(recipes);
         }
 
-        // GET: Деталі рецепта
+        // GET: Деталі
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
             var recipe = await _context.Recipes
+                .Include(r => r.Category)
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
                 .FirstOrDefaultAsync(m => m.RecipeId == id);
@@ -44,16 +89,18 @@ namespace RecipeSite.Controllers
             return View(recipe);
         }
 
-        // GET: Відкриває сторінку створення
+        // GET: Створення
         public IActionResult Create()
         {
+            // Передаємо список категорій для випадаючого списку (Dropdown)
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name");
             return View();
         }
 
-        // POST: Зберігає новий рецепт
+        // POST: Створення
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("RecipeId,Title,Description,CookingTime")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
+        public async Task<IActionResult> Create([Bind("RecipeId,Title,Description,CookingTime,CategoryId")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
         {
             if (ModelState.IsValid)
             {
@@ -74,7 +121,6 @@ namespace RecipeSite.Controllers
                 _context.Add(recipe);
                 await _context.SaveChangesAsync();
 
-                // Обробка текстових назв інгредієнтів
                 if (ingredientNames != null)
                 {
                     for (int i = 0; i < ingredientNames.Count; i++)
@@ -82,13 +128,12 @@ namespace RecipeSite.Controllers
                         var name = ingredientNames[i]?.Trim();
                         if (string.IsNullOrEmpty(name)) continue;
 
-                        // Шукаємо інгредієнт у базі. Якщо немає — створюємо.
                         var ingredient = await _context.Ingredients.FirstOrDefaultAsync(ing => ing.Name == name);
                         if (ingredient == null)
                         {
                             ingredient = new Ingredient { Name = name };
                             _context.Ingredients.Add(ingredient);
-                            await _context.SaveChangesAsync(); 
+                            await _context.SaveChangesAsync();
                         }
 
                         _context.RecipeIngredients.Add(new RecipeIngredient
@@ -104,10 +149,11 @@ namespace RecipeSite.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", recipe.CategoryId);
             return View(recipe);
         }
 
-        // GET: Відкриває сторінку редагування
+        // GET: Редагування
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -119,13 +165,14 @@ namespace RecipeSite.Controllers
 
             if (recipe == null) return NotFound();
 
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", recipe.CategoryId);
             return View(recipe);
         }
 
-        // POST: Зберігає відредагований рецепт
+        // POST: Редагування
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("RecipeId,Title,Description,CookingTime,ImagePath")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
+        public async Task<IActionResult> Edit(int id, [Bind("RecipeId,Title,Description,CookingTime,ImagePath,CategoryId")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
         {
             if (id != recipe.RecipeId) return NotFound();
 
@@ -149,11 +196,9 @@ namespace RecipeSite.Controllers
 
                     _context.Update(recipe);
 
-                    // Видаляємо старі зв'язки
                     var oldIngredients = _context.RecipeIngredients.Where(ri => ri.RecipeId == id);
                     _context.RecipeIngredients.RemoveRange(oldIngredients);
 
-                    // Додаємо нові зі списку
                     if (ingredientNames != null)
                     {
                         for (int i = 0; i < ingredientNames.Count; i++)
@@ -188,6 +233,7 @@ namespace RecipeSite.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", recipe.CategoryId);
             return View(recipe);
         }
 
@@ -196,14 +242,13 @@ namespace RecipeSite.Controllers
         {
             if (id == null) return NotFound();
 
-            var recipe = await _context.Recipes
-                .FirstOrDefaultAsync(m => m.RecipeId == id);
+            var recipe = await _context.Recipes.FirstOrDefaultAsync(m => m.RecipeId == id);
             if (recipe == null) return NotFound();
 
             return View(recipe);
         }
 
-        // POST: Підтвердження видалення
+        // POST: Видалення
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -22,6 +22,12 @@
                 <input asp-for="CookingTime" type="number" class="form-control" required />
             </div>
             <div class="mb-3">
+    <label asp-for="CategoryId" class="form-label fw-bold">Категорія страви</label>
+    <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId" required>
+        <option value="">-- Оберіть категорію --</option>
+    </select>
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-bold">Фото страви</label>
                 <input type="file" name="uploadFile" class="form-control" accept="image/*" />
             </div>
