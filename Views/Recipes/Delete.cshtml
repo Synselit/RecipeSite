@@ -1,0 +1,26 @@
+@model RecipeSite.Models.Recipe
+
+@{
+    ViewData["Title"] = "Видалення";
+}
+
+<h1 class="text-danger mb-4">Видалення рецепта</h1>
+
+<div class="alert alert-warning">
+    <h4>Ви впевнені, що хочете видалити цю страву?</h4>
+    <p>Цю дію неможливо буде скасувати.</p>
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Title</h5>
+        <p class="card-text text-muted">⏱ @Model.CookingTime хвилин</p>
+        
+        <form asp-action="Delete" class="mt-4">
+            <input type="hidden" asp-for="RecipeId" />
+            
+            <input type="submit" value="Так, видалити назавжди" class="btn btn-danger" />
+            <a asp-action="Index" class="btn btn-secondary ms-2">Скасувати</a>
+        </form>
+    </div>
+</div>

@@ -20,5 +20,10 @@ namespace RecipeSite.Models
 
         // Зв'язок Many-to-Many через проміжну таблицю
         public List<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
+     
+   
+         public string? ImagePath { get; set; }
+    
+    // ...
     }
 }

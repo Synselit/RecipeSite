@@ -1,0 +1,23 @@
+@model RecipeSite.Models.Ingredient
+
+@{
+    ViewData["Title"] = "Новий інгредієнт";
+}
+
+<h1 class="mb-4">Додати продукт до складу</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Назва (наприклад: Картопля, Сіль)</label>
+                <input asp-for="Name" class="form-control" required />
+            </div>
+            
+            <div class="mt-4">
+                <input type="submit" value="Зберегти" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Назад до списку</a>
+            </div>
+        </form>
+    </div>
+</div>

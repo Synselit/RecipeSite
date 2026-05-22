@@ -1,0 +1,97 @@
+@model RecipeSite.Models.Recipe
+
+@{
+    ViewData["Title"] = "Деталі рецепта";
+}
+
+<h1 class="mb-4">@Model.Title</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" class="card-img-top" alt="@Model.Title" style="max-height: 350px; object-fit: cover;" />
+            }
+
+            <div class="card-body">
+                <h5 class="card-title text-muted">Опис страви</h5>
+                <p class="card-text fs-5">@Model.Description</p>
+                <hr />
+                <h5 class="card-title text-muted mt-3">Час приготування</h5>
+                <p class="card-text fs-5">⏱ @Model.CookingTime хвилин</p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <a asp-action="Edit" asp-route-id="@Model.RecipeId" class="btn btn-warning">Редагувати</a> 
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Повернутися до списку</a>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Склад рецепта</h5>
+            </div>
+            <div class="card-body">
+                
+                @if (Model.RecipeIngredients != null && Model.RecipeIngredients.Any())
+                {
+                    <ul class="list-group mb-4">
+                        @foreach (var item in Model.RecipeIngredients)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    @item.Ingredient.Name
+                                    <span class="badge bg-success rounded-pill ms-2 fs-6">@item.Amount @item.Unit</span>
+                                </div>
+                                <form asp-action="RemoveIngredient" method="post" class="m-0">
+                                    <input type="hidden" name="recipeId" value="@Model.RecipeId" />
+                                    <input type="hidden" name="ingredientId" value="@item.IngredientId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 fs-5" title="Прибрати з рецепта">✖</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="alert alert-light text-center border">
+                        До цього рецепта ще не додано жодного інгредієнта.
+                    </div>
+                }
+
+                <hr />
+
+                <h6 class="mb-3 text-muted">Додати продукт:</h6>
+                <form asp-action="AddIngredient" method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="recipeId" value="@Model.RecipeId" />
+                    
+                    <div class="col-md-4">
+                        <label class="form-label small">Оберіть</label>
+                        <select name="ingredientId" class="form-select" asp-items="ViewBag.AllIngredients" required>
+                            <option value="">-- Зі списку --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label small">Кількість</label>
+                        <input type="number" name="amount" class="form-control" step="0.1" required />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small">Одиниці</label>
+                        <input type="text" name="unit" class="form-control" placeholder="г, шт, мл..." required />
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">✔</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
