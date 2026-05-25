@@ -7,7 +7,10 @@
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold text-success mb-0">🍽 Світ Рецептів</h1>
-        <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">+ Додати рецепт</a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">+ Додати рецепт</a>
+        }
     </div>
 
     <form asp-action="Index" method="get" class="mb-5 bg-light p-4 rounded-4 shadow-sm border border-light">
@@ -84,7 +87,12 @@
                             <span class="badge bg-light text-success border border-success rounded-pill px-2 py-2">⏱ @item.CookingTime хв</span>
                             <div class="d-flex gap-2">
                                 <a asp-action="Details" asp-route-id="@item.RecipeId" class="btn btn-outline-primary btn-sm fw-bold px-3">Деталі</a>
-                                <a asp-action="Delete" asp-route-id="@item.RecipeId" class="btn btn-outline-danger btn-sm px-2" title="Видалити рецепт">🗑</a>
+                                
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.RecipeId" class="btn btn-outline-secondary btn-sm px-2" title="Редагувати">✏</a>
+                                    <a asp-action="Delete" asp-route-id="@item.RecipeId" class="btn btn-outline-danger btn-sm px-2" title="Видалити рецепт">🗑</a>
+                                }
                             </div>
                         </div>
                     </div>

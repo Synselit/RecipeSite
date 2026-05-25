@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RecipeSite.Models;
 
 namespace RecipeSite.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -13,13 +14,13 @@ namespace RecipeSite.Data
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Ingredient> Ingredients { get; set; }
         public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
-        public DbSet<Category> Categories { get; set; } // Наша нова таблиця
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ВАЖЛИВО: Повертаємо правило для зв'язку "багато до багатьох"
+            // Правило для зв'язку "багато до багатьох"
             modelBuilder.Entity<RecipeIngredient>()
                 .HasKey(ri => new { ri.RecipeId, ri.IngredientId });
 

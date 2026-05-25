@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RecipeSite.Data;
 using RecipeSite.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RecipeSite.Controllers
 {
@@ -89,7 +90,9 @@ namespace RecipeSite.Controllers
             return View(recipe);
         }
 
+
         // GET: Створення
+        [Authorize]
         public IActionResult Create()
         {
             // Передаємо список категорій для випадаючого списку (Dropdown)
@@ -100,6 +103,7 @@ namespace RecipeSite.Controllers
         // POST: Створення
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("RecipeId,Title,Description,CookingTime,CategoryId")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
         {
             if (ModelState.IsValid)
@@ -154,6 +158,7 @@ namespace RecipeSite.Controllers
         }
 
         // GET: Редагування
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -172,6 +177,7 @@ namespace RecipeSite.Controllers
         // POST: Редагування
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("RecipeId,Title,Description,CookingTime,ImagePath,CategoryId")] Recipe recipe, IFormFile? uploadFile, List<string> ingredientNames, List<decimal> amounts, List<string> units)
         {
             if (id != recipe.RecipeId) return NotFound();
@@ -238,6 +244,7 @@ namespace RecipeSite.Controllers
         }
 
         // GET: Видалення
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -251,6 +258,7 @@ namespace RecipeSite.Controllers
         // POST: Видалення
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var recipe = await _context.Recipes.FindAsync(id);

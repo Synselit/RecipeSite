@@ -22,16 +22,36 @@
                     <ul class="navbar-nav flex-grow-1">
                         
                         <ul class="navbar-nav flex-grow-1">
-   
-        <a class="nav-link text-dark" asp-area="" asp-controller="Recipes" asp-action="Index">Всі рецепти</a>
-        <li class="nav-item">
-    <a class="nav-link text-dark" asp-area="" asp-controller="Ingredients" asp-action="Index">Інгредієнти</a>
-        </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Recipes" asp-action="Index">Всі рецепти</a>
     </li>
     
-    
+    @if (User.Identity.IsAuthenticated)
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="" asp-controller="Ingredients" asp-action="Index">Інгредієнти</a>
+        </li>
+    }
 </ul>
                     </ul>
+                    <ul class="navbar-nav ms-auto">
+    @if (User.Identity.IsAuthenticated)
+    {
+        <li class="nav-item d-flex align-items-center">
+            <span class="text-dark me-3 fw-medium"> Привіт, Адмін!</span>
+            <form class="form-inline m-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Recipes", new { area = "" })">
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fw-bold">Вийти</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="btn btn-dark rounded-pill fw-bold ms-2 px-3" asp-area="Identity" asp-page="/Account/Login">Вхід</a>
+        </li>
+    }
+</ul>
+                
                 </div>
             </div>
         </nav>
